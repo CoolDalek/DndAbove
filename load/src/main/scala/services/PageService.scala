@@ -1,12 +1,10 @@
 package services
 
-import cats.effect.syntax.all._
-import cats.effect.kernel._
+import monix.eval.Task
 
-import scala.concurrent.Future
 
 trait PageService {
 
-  def healthCheck: Future[Either[Unit, String]]
+  def healthCheck: Task[String]
 
 }

@@ -1,19 +1,18 @@
 package controllers
 
+import http._
+import monix.execution.Scheduler
 import services.PageService
-import sttp.tapir._
 import sttp.tapir.json.upickle._
-import sttp.tapir.server.ServerEndpoint
-import upickle.default._
 
-import scala.concurrent.Future
+class PageController(service: PageService)
+                    (implicit sch: Scheduler) extends Controller {
 
-class PageController(service: PageService) {
-
-  def healthCheck: ServerEndpoint[Unit, Unit, String, Any, Future] =
-    endpoint.get
+  val healthCheck: Endpoint[Unit, String] =
+    builder.get
       .in("health_check")
       .out(jsonBody[String])
-      .serverLogic(_ => service.healthCheck)
+      .ignoreInput(service.healthCheck)
+      .build()
 
 }

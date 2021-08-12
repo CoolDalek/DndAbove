@@ -1,12 +1,11 @@
 package services.impl
 
+import monix.eval.Task
 import services.PageService
-
-import scala.concurrent.Future
 
 class PageServiceImpl extends PageService {
 
-  override def healthCheck: Future[Either[Unit, String]] =
-    Future.successful(Right("Hello!"))
+  override def healthCheck: Task[String] =
+    Task.now("Hello World!")
 
 }
