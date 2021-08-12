@@ -13,6 +13,5 @@ class PageController(service: PageService)
       .in("health_check")
       .out(jsonBody[String])
       .ignoreInput(service.healthCheck)
-      .build()
 
 }

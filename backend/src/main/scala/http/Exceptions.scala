@@ -5,24 +5,18 @@ import sttp.model.StatusCode
 
 object Exceptions {
 
-  implicit class ExceptionsOps(private val self: Throwable) extends AnyVal {
-
-    def getReason: Option[Throwable] = Option(self.getCause)
-
-  }
-
   abstract class AbstractHttpException(
                                         val statusCode: StatusCode,
                                         val errorMessage: ErrorDescription,
                                         private val reason: Option[Throwable] = None
                                       )
-    extends RuntimeException(s"Code: ${statusCode.code}, message: ${errorMessage.asString}") {
+    extends RuntimeException(s"Code: ${statusCode.code}, message: ${errorMessage.asString}.") {
 
     reason.foreach(initCause)
 
   }
 
-  class InternalServerError(reason: Option[Throwable]) extends AbstractHttpException(
+  case class InternalServerError(reason: Option[Throwable]) extends AbstractHttpException(
     statusCode = StatusCode.InternalServerError,
     errorMessage = Descriptions.InternalServerError,
     reason = reason
@@ -36,6 +30,6 @@ object Exceptions {
     
   }
 
-  object NotImplemented extends AbstractHttpException(StatusCode.NotImplemented, Descriptions.NotImplemented)
+  case class NotImplemented() extends AbstractHttpException(StatusCode.NotImplemented, Descriptions.NotImplemented)
 
 }

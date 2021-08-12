@@ -6,17 +6,15 @@ import scala.collection.mutable
 
 trait Controller {
 
-  private val buffer = mutable.ListBuffer.empty[Endpoint[_, _]]
+  private val buffer = mutable.Set.empty[Endpoint[_, _]]
 
   implicit val CanRegisterEndpoint: CanRegisterEndpoint = new CanRegisterEndpoint {
 
-    override def register(endpoint: Endpoint[_, _]): Unit =
-      buffer += endpoint
+    override def register(endpoint: Endpoint[_, _]): Unit = buffer += endpoint
 
   }
 
-  def endpoints: List[Endpoint[_, _]] =
-    buffer.result()
+  def endpoints: List[Endpoint[_, _]] = buffer.to(List)
 
 }
 object Controller {

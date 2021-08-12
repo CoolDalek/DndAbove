@@ -30,7 +30,7 @@ lazy val backendShared = (project in file("backend")).settings(
   ),
 )
 
-lazy val loadBalancer = (project in file("load"))
+lazy val loadBalancer = (project in file("balancer"))
   .settings(
     libraryDependencies ++= Seq(
       "com.softwaremill.macwire" %% "macros" % "2.4.0" % "provided",

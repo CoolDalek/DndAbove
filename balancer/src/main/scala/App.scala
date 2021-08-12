@@ -7,7 +7,7 @@ object App extends Module {
       case Failure(exc) =>
         scribe.error("Error during application startup.", exc)
       case Success(_) =>
-        scribe.info("Application shutdown completed.")
+        scribe.info("Application started.")
     }
 
 }

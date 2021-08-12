@@ -1,7 +1,7 @@
 import http.Controller.CanRegisterEndpoint
 import http.Exceptions.NotImplemented
 import monix.eval.Task
-import monix.execution.{CancelableFuture, Scheduler}
+import monix.execution.Scheduler
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{Tapir, Endpoint => TapirEndpoint}
 
@@ -15,55 +15,47 @@ package object http extends Tapir {
 
   val builder: IncompleteEndpoint[Unit, Unit] = infallibleEndpoint
 
-  protected sealed trait ConformAndAttach extends Any {
+  implicit class EndpointRegisterExtension[I, O](private val self: Endpoint[I, O]) extends AnyVal {
 
-    protected def conformAndAttach[I, O](logic: I => Task[O],
-                                       self: IncompleteEndpoint[I, O])(implicit sch: Scheduler): Endpoint[I, O] = {
+    def register()(implicit registrar: CanRegisterEndpoint): Endpoint[I, O] =
+      EndpointExtensions.register(self)
 
-      def conformed(input: I): CancelableFuture[Either[Nothing, O]] =
-        logic(input).map { output =>
-          Right[Nothing, O](output)
-        }.runToFuture
+  }
 
-      self.serverLogic(conformed)
-    }
+  implicit class ConformAndAttach[I, O](private val self: IncompleteEndpoint[I, O]) extends AnyVal {
+
+    def conformAndAttach(logic: I => Task[O])
+                        (implicit sch: Scheduler,
+                         registrar: CanRegisterEndpoint): Endpoint[I, O] =
+      EndpointExtensions.conformAndAttach(self, logic)
 
   }
 
   implicit class EndpointLogicExtension[I, O](private val self: IncompleteEndpoint[I, O])
-    extends AnyVal with ConformAndAttach {
+    extends AnyVal {
 
-    private def conformAndAttach(logic: I => Task[O])(implicit sch: Scheduler): Endpoint[I, O] =
-      conformAndAttach(logic, self)
+    def notImplemented(implicit sch: Scheduler,
+                       registrar: CanRegisterEndpoint): Endpoint[I, O] =
+      self.conformAndAttach(_ => Task.raiseError(NotImplemented()))
 
-    def notImplemented(implicit sch: Scheduler): Endpoint[I, O] =
-      conformAndAttach(_ => Task.raiseError(NotImplemented))
+    def lazyLogic(serverLogic: I => Task[O])
+                 (implicit sch: Scheduler,
+                  registrar: CanRegisterEndpoint): Endpoint[I, O] =
+      self.conformAndAttach(serverLogic)
 
-    def lazyLogic(serverLogic: I => Task[O])(implicit sch: Scheduler): Endpoint[I, O] =
-      conformAndAttach(serverLogic)
-
-    def ignoreInput(serverLogic: => Task[O])(implicit sch: Scheduler): Endpoint[I, O] =
-      conformAndAttach(_ => serverLogic)
+    def ignoreInput(serverLogic: => Task[O])
+                   (implicit sch: Scheduler,
+                    registrar: CanRegisterEndpoint): Endpoint[I, O] =
+      self.conformAndAttach(_ => serverLogic)
 
   }
 
   implicit class EndpointUnitLogicExtension[I](private val self: IncompleteEndpoint[I, Unit])
-    extends AnyVal with ConformAndAttach {
+    extends AnyVal {
 
-    private def conformAndAttach(logic: I => Task[Unit])(implicit sch: Scheduler): Endpoint[I, Unit] =
-      conformAndAttach(logic, self)
-
-    def emptyLogic(implicit sch: Scheduler): Endpoint[I, Unit] =
-      conformAndAttach(_ => Task.unit)
-
-  }
-
-  implicit class EndpointBuilderExtension[I, O](private val self: Endpoint[I, O]) extends AnyVal {
-
-    def build()(implicit registrar: CanRegisterEndpoint): Endpoint[I, O] = {
-      registrar.register(self)
-      self
-    }
+    def emptyLogic(implicit sch: Scheduler,
+                   registrar: CanRegisterEndpoint): Endpoint[I, Unit] =
+      self.conformAndAttach(_ => Task.unit)
 
   }
 
