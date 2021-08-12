@@ -26,6 +26,7 @@ lazy val backendShared = (project in file("backend")).settings(
     "com.lihaoyi" %% "upickle" % "1.4.0",
     "com.outr" %% "scribe-slf4j" % "3.5.3",
     "com.outr" %% "scribe" % "3.5.3",
+    "com.softwaremill.macwire" %% "macros" % "2.4.0" % "provided",
   )
 )
 

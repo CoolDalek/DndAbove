@@ -2,4 +2,4 @@ target
 */target
 target/*
 .idea
-.bsp
+.bsp"com.softwaremill.macwire" %% "util" % "2.4.0",
