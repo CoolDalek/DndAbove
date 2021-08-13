@@ -8,7 +8,7 @@ trait Controller {
 
   private val buffer = mutable.Set.empty[Endpoint[_, _]]
 
-  implicit val CanRegisterEndpoint: CanRegisterEndpoint = new CanRegisterEndpoint {
+  protected implicit val CanRegisterEndpoint: CanRegisterEndpoint = new CanRegisterEndpoint {
 
     override def register(endpoint: Endpoint[_, _]): Unit = buffer += endpoint
 

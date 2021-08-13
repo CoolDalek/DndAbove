@@ -8,9 +8,17 @@ import sttp.tapir.server.interceptor.log.ServerLog
 
 import scala.concurrent.Future
 
+import concurrent.io._
+
 object ScribeServerLogging extends ServerLog[LoggingAdapter => Future[Unit]] {
 
-  private def ignoreAdapter(log: => Unit): LoggingAdapter => Future[Unit] = _ => Future.successful(log)
+  /**
+   * Ignore adapter and directly use scribe.
+   * Reasons:
+   *   - this approach faster because of macros nature of scribe;
+   *   - more convenient syntax.
+   */
+  private def ignoreAdapter(log: => Unit): LoggingAdapter => Future[Unit] = _ => Future(log)(IOScheduler)
 
   private def formattedDecodeFailure(ctx: DecodeFailureContext) =
     s"Decoding failure.\n${ctx.endpoint.showDetail}\nRequest: ${ctx.request}.\nInput: ${ctx.failingInput.show}.\nError: ${ctx.failure}."

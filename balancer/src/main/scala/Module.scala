@@ -15,6 +15,8 @@ import scala.util.Try
 trait Module extends ScribeConfigurator {
 
   def bootstrap(): Try[Unit] = Try {
+    scribe.info("Starting application.")
+
     implicit val sch: Scheduler = concurrent.global.GlobalScheduler
 
     implicit val classicSystem: ActorSystem = ActorSystem("Server")

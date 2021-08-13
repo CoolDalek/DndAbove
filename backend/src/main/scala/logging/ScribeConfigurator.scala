@@ -1,8 +1,8 @@
 package logging
 
 import scribe.Level
-import scribe.file.FileWriter
 import scribe.file.FlushMode.AsynchronousFlush
+import scribe.file._
 import scribe.format.Formatter
 import scribe.handler.{AsynchronousLogHandle, LogHandlerBuilder}
 import scribe.output.format.{ANSIOutputFormat, ASCIIOutputFormat}
@@ -18,7 +18,8 @@ trait ScribeConfigurator {
       LogHandlerBuilder(
         formatter = Formatter.strict,
         writer = FileWriter(
-          flushMode = AsynchronousFlush()(concurrent.io.IOScheduler)
+          flushMode = AsynchronousFlush()(concurrent.io.IOScheduler),
+          pathBuilder = "logs" / (daily() % maxSize() % ".log")
         ),
         outputFormat = ASCIIOutputFormat,
         handle = AsynchronousLogHandle(1024),

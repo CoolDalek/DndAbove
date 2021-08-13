@@ -40,15 +40,17 @@ class ServerImpl(controllers: List[Controller])
   def addStopHook(binding: ServerBinding): ShutdownHookThread =
     sys.addShutdownHook {
       for {
+        _ <- Future.successful(scribe.debug(s"Shutting down server."))
         _ <- binding.terminate(5 minutes span)
         _ <- stopSystem
-      } yield ()
+      } yield scribe.debug("Server terminated.")
     }
 
-  def stopSystem(implicit ec: ExecutionContext): Future[Terminated] =
+  def stopSystem(implicit ec: ExecutionContext): Future[Unit] =
     for {
+      _ <- Future.successful(scribe.debug(s"Shutting down actor system ${system.name}."))
       _ <- system.terminate()
-      terminated <- system.whenTerminated
-    } yield terminated
+      _ <- system.whenTerminated
+    } yield scribe.debug(s"Actor system ${system.name} terminated.")
 
 }
